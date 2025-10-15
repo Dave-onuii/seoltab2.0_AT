@@ -9,6 +9,9 @@ class HomePage(BasePage):
     # --- Locators ---
     INTRO_POPUP_DIALOG = (AppiumBy.ACCESSIBILITY_ID, "introPopupDialog")
     INTRO_POPUP_CLOSE_BUTTON = (AppiumBy.IOS_CLASS_CHAIN, "**/XCUIElementTypeWindow[1]/**/XCUIElementTypeImage[2]")
+    GNB_HOME = (AppiumBy.ACCESSIBILITY_ID, '\"홈\nTab 1 of 3\"')
+    GNB_TUTORING = (AppiumBy.ACCESSIBILITY_ID, '\"과외\nTab 2 of 3\"')
+    GNB_PREPARATION = (AppiumBy.ACCESSIBILITY_ID, '\"자습\nTab 3 of 3\"')
     MY_PAGE_BUTTON = (AppiumBy.IOS_CLASS_CHAIN, "**/XCUIElementTypeWindow[1]/**/XCUIElementTypeImage")
 
     # --- Actions ---
