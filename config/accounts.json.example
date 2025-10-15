@@ -1,0 +1,17 @@
+{
+  "test_account_1": {
+    "email": "your_email_1@seoltab.test",
+    "password": "your_password_1",
+    "description": "Primary test account"
+  },
+  "test_account_2": {
+    "email": "your_email_2@seoltab.test",
+    "password": "your_password_2",
+    "description": "Secondary test account"
+  },
+  "admin_account": {
+    "email": "admin@seoltab.test",
+    "password": "admin_password",
+    "description": "Admin test account"
+  }
+}

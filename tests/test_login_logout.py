@@ -10,6 +10,7 @@ from pages.home_page import HomePage
 
 # 헬퍼 함수를 import 합니다.
 from utils.capabilities_loader import get_capabilities
+from utils.account_loader import get_account_credentials
 
 # unittest.TestCase를 상속받는 클래스로 전체 테스트를 묶어줍니다.
 class LoginLogoutTest(unittest.TestCase):
@@ -38,10 +39,9 @@ class LoginLogoutTest(unittest.TestCase):
     # 실제 테스트 케이스. 메서드 이름은 반드시 'test_'로 시작해야 합니다.
     def test_login_logout(self):
         """사용자가 성공적으로 로그인하고 로그아웃하는 전체 시나리오를 테스트합니다."""
-        
-        # 테스트에 사용할 데이터
-        id_key = "ssdave04@seoltab.test"
-        pw_key = "asdfasdf1"
+
+        # 테스트에 사용할 계정 정보 (config/accounts.json에서 로드)
+        id_key, pw_key = get_account_credentials("test_account_1")
 
         # 1. 로그인 수행
         print("로그인을 시도합니다...")

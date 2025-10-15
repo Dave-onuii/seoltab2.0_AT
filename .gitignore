@@ -13,3 +13,6 @@ __pycache__/
 
 # macOS 시스템 파일
 .DS_Store
+
+# 계정 정보 (보안)
+config/accounts.json
