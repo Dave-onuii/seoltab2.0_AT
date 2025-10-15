@@ -3,6 +3,7 @@ pytest 설정 및 공통 fixture 정의
 """
 import pytest
 import time
+import allure
 from appium import webdriver
 from appium.options.common.base import AppiumOptions
 
@@ -66,6 +67,11 @@ def driver(device_name):
     driver = webdriver.Remote('http://localhost:4723/wd/hub', options=options)
     print(f"[SETUP] 드라이버 생성 완료 (디바이스: {device_name}).")
 
+    # Allure 환경 정보 추가
+    allure.dynamic.parameter("디바이스", device_name)
+    allure.dynamic.parameter("플랫폼", desired_caps.get("platformName", "Unknown"))
+    allure.dynamic.parameter("플랫폼 버전", desired_caps.get("appium:platformVersion", "Unknown"))
+
     # yield로 테스트에 driver 전달
     yield driver
 
@@ -116,11 +122,11 @@ def test_account():
     return get_account_credentials("test_account_1")
 
 
-# pytest hook: 테스트 실패 시 스크린샷 저장
+# pytest hook: 테스트 실패 시 스크린샷 저장 및 Allure 첨부
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """
-    테스트 실패 시 자동으로 스크린샷을 캡처합니다.
+    테스트 실패 시 자동으로 스크린샷을 캡처하고 Allure 리포트에 첨부합니다.
     """
     # 테스트 실행
     outcome = yield
@@ -136,8 +142,17 @@ def pytest_runtest_makereport(item, call):
                 screenshot_name = f"screenshots/{item.name}_{int(time.time())}.png"
                 driver.save_screenshot(screenshot_name)
                 print(f"\n[SCREENSHOT] 스크린샷 저장: {screenshot_name}")
+
+                # Allure 리포트에 스크린샷 첨부
+                with open(screenshot_name, 'rb') as image_file:
+                    allure.attach(
+                        image_file.read(),
+                        name=f"실패 스크린샷 - {item.name}",
+                        attachment_type=allure.attachment_type.PNG
+                    )
+                print(f"[ALLURE] 스크린샷을 Allure 리포트에 첨부했습니다.")
             except Exception as e:
-                print(f"\n[ERROR] 스크린샷 저장 실패: {e}")
+                print(f"\n[ERROR] 스크린샷 저장/첨부 실패: {e}")
 
 
 def pytest_configure(config):
