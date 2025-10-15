@@ -20,3 +20,10 @@ config/accounts.json
 # 디버깅 파일
 page_source_debug.xml
 tests/debug_page_source.py
+
+# pytest 관련 파일
+.pytest_cache/
+reports/
+screenshots/
+.allure/
+allure-results/
