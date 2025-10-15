@@ -16,3 +16,7 @@ __pycache__/
 
 # 계정 정보 (보안)
 config/accounts.json
+
+# 디버깅 파일
+page_source_debug.xml
+tests/debug_page_source.py
