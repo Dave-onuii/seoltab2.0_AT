@@ -16,8 +16,33 @@ from utils.capabilities_loader import get_capabilities
 from utils.account_loader import get_account_credentials
 
 
+def pytest_addoption(parser):
+    """
+    커맨드라인 옵션 추가
+
+    사용 예시:
+        pytest --device iPad_9th_15.7_real
+        pytest --device galaxy_s22_real
+        pytest  (기본값: iPad_9th_15.7_real)
+    """
+    parser.addoption(
+        "--device",
+        action="store",
+        default="iPad_9th_15.7_real",
+        help="디바이스 이름 (devices.json에 정의된 키)"
+    )
+
+
 @pytest.fixture(scope="function")
-def driver():
+def device_name(request):
+    """
+    커맨드라인에서 전달받은 디바이스 이름을 반환하는 fixture
+    """
+    return request.config.getoption("--device")
+
+
+@pytest.fixture(scope="function")
+def driver(device_name):
     """
     Appium 드라이버 fixture
     각 테스트 함수마다 새로운 드라이버를 생성하고 종료합니다.
@@ -25,18 +50,21 @@ def driver():
     scope="function": 각 테스트마다 새로 생성 (기본값)
     scope="session": 전체 테스트 세션에서 1번만 생성
     scope="module": 모듈(파일)당 1번만 생성
+
+    Args:
+        device_name: 디바이스 이름 (커맨드라인 옵션 또는 기본값)
     """
-    print("\n[SETUP] Appium 드라이버를 생성합니다...")
+    print(f"\n[SETUP] Appium 드라이버를 생성합니다 (디바이스: {device_name})...")
 
     # device.json 파일에서 Capabilities 정보를 가져옵니다.
-    desired_caps = get_capabilities("iPad_9th_15.7_real")
+    desired_caps = get_capabilities(device_name)
 
     # AppiumOptions 객체를 생성하고, 가져온 정보로 로드합니다.
     options = AppiumOptions().load_capabilities(desired_caps)
 
     # Appium 드라이버 생성
     driver = webdriver.Remote('http://localhost:4723/wd/hub', options=options)
-    print("[SETUP] 드라이버 생성 완료.")
+    print(f"[SETUP] 드라이버 생성 완료 (디바이스: {device_name}).")
 
     # yield로 테스트에 driver 전달
     yield driver
