@@ -5,7 +5,7 @@ from selenium.common.exceptions import TimeoutException # 예외 처리를 위�
 
 class LoginPage(BasePage):
     # --- Locators (요소들) ---
-    EMAIL_INPUT = (AppiumBy.ACCESSIBILITY_ID, "이메일을 입력해 주세요") # 이메일 입력필드
+    EMAIL_INPUT = (AppiumBy.XPATH, "//XCUIElementTypeTextField[1]") # 이메일 입력필드 (첫 번째 TextField)
     PASSWORD_INPUT = (AppiumBy.ACCESSIBILITY_ID, "비밀번호를 입력해주세요") # 비밀번호 입력필드
     LOGIN_BUTTON = (AppiumBy.ACCESSIBILITY_ID, "로그인") # 로그인 버튼
     INTRO_POPUP_DIALOG = (AppiumBy.ACCESSIBILITY_ID, "introPopupDialog") # 로그인 후 홈에 진입시 노출되는 인트로 팝업 다이얼로그
@@ -15,9 +15,9 @@ class LoginPage(BasePage):
         """로그인 페이지가 노출되면 로그인을 진행하고 그렇지 않으면 인트로 팝업 노출여부로 로그인 여부를 체크 함"""
         try:
             self.find_element(self.EMAIL_INPUT, timeout=20)
-            print("이미엘 입력창이 노출되었습니다. 로그인을 시도합니다...")
-            self.send_keys(self.EMAIL_INPUT, email)
-            self.send_keys(self.PASSWORD_INPUT, password)
+            print("이메일 입력창이 노출되었습니다. 로그인을 시도합니다...")
+            self.send_keys(self.EMAIL_INPUT, email, clear_first=True)
+            self.send_keys(self.PASSWORD_INPUT, password, clear_first=True)
             self.click(self.LOGIN_BUTTON)
             print("로그인 버튼을 클릭했습니다.")
         except TimeoutException:

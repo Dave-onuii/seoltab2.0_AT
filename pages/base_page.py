@@ -16,9 +16,17 @@ class BasePage:
         print(f"BasePage: '{locator}' 요소를 클릭합니다.")
         self.find_element(locator, timeout).click()
 
-    def send_keys(self, locator, text, timeout=20):
+    def send_keys(self, locator, text, timeout=20, clear_first=False):
         print(f"BasePage: '{locator}' 요소에 '{text}'를 입력합니다.")
-        self.find_element(locator, timeout).send_keys(text)
+        element = self.find_element(locator, timeout)
+        if clear_first:
+            element.clear()
+            print(f"BasePage: '{locator}' 요소의 기존 값을 지웠습니다.")
+        element.send_keys(text)
+
+    def clear(self, locator, timeout=20):
+        print(f"BasePage: '{locator}' 요소의 값을 지웁니다.")
+        self.find_element(locator, timeout).clear()
 
     # 요소가 보이는지 검증하고 성공시 PASS 로그 생성
     def verify_element_visibility(self, locator, element_name, timeout=20):

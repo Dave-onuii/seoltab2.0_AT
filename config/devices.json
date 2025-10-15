@@ -5,9 +5,9 @@
     "appium:deviceName": "DAVE의 iPad",
     "appium:automationName": "XCUITest",
     "appium:udid": "00008030-000E65282123C02E",
-    "appium:app": "/Users/davekim/Downloads/iOS_App/app.ipa",
-    "autoAcceptAlerts": true, 
-    "appium:usePrebuiltWDA": true, 
+    "appium:bundleId": "com.onuii.IOS.SolTab.stg",
+    "autoAcceptAlerts": true,
+    "appium:usePrebuiltWDA": true,
     "appium:derivedDataPath": "/Users/davekim/wda_build",
     "appium:wdaLaunchTimeout": 30000
     }
