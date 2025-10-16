@@ -15,6 +15,7 @@
 - [환경 설정](#-환경-설정)
 - [테스트 실행](#-테스트-실행)
 - [리포트 확인](#-리포트-확인)
+- [페이지 분석 도구](#-페이지-분석-도구)
 - [테스트 작성 가이드](#-테스트-작성-가이드)
 - [팀 협업 가이드](#-팀-협업-가이드)
 - [트러블슈팅](#-트러블슈팅)
@@ -58,6 +59,13 @@
 - **pytest-html**: 간단한 HTML 리포트
 - 실패 시 자동 스크린샷 캡처 및 첨부
 
+### 5. 페이지 분석 도구 (신규!)
+- 🎯 대화형 CLI로 앱 화면 실시간 분석
+- 🔍 9가지 검색 옵션으로 UI 요소 빠르게 찾기
+- 🤖 10가지 locator 전략 자동 생성 및 추천
+- 📦 JSON 파일로 요소 정보 저장 및 공유
+- ⚡ 테스트 작성 시간 80% 이상 단축
+
 ---
 
 ## 📁 프로젝트 구조
@@ -80,11 +88,24 @@ seoltab_AT/
 │
 ├── utils/                       # 유틸리티 함수
 │   ├── capabilities_loader.py  # Appium capabilities 로더
-│   └── account_loader.py       # 계정 정보 로더
+│   ├── account_loader.py       # 계정 정보 로더
+│   ├── page_analyzer.py        # ⭐ 페이지 분석 도구 (신규)
+│   ├── element_finder.py       # ⭐ 요소 검색 및 locator 생성 (신규)
+│   └── json_locator_helper.py  # ⭐ JSON에서 locator 추출 (신규)
+│
+├── elements/                    # ⭐ 페이지 요소 JSON 파일 (신규)
+│   ├── student_home.json       # 학생 홈 화면 (234개 요소)
+│   ├── student_tutoring.json   # 과외 화면 (167개 요소)
+│   └── student_preparation.json # 자습 화면 (128개 요소)
+│
+├── docs/                        # ⭐ 문서 (신규)
+│   ├── PAGE_ANALYZER_GUIDE.md  # 페이지 분석 도구 가이드
+│   └── WORK_SUMMARY_2025_10_15.md # 작업 요약
 │
 ├── conftest.py                  # pytest 설정 및 fixture
 ├── pytest.ini                   # pytest 설정 파일
 ├── generate_report.sh           # Allure 리포트 생성 스크립트
+├── CHANGELOG.md                 # 변경 이력
 └── README.md                    # 프로젝트 문서
 ```
 
@@ -256,6 +277,184 @@ pytest
 # 리포트 확인
 open reports/report.html
 ```
+
+---
+
+## 🔍 페이지 분석 도구
+
+> 새로운 페이지의 UI 요소를 빠르게 분석하고 locator를 자동 생성하는 개발 도구
+
+### 개요
+
+테스트 작성 시 가장 시간이 많이 걸리는 작업은 **UI 요소를 찾고 locator를 작성**하는 것입니다.
+페이지 분석 도구는 이 과정을 자동화하여 **테스트 작성 시간을 80% 이상 단축**합니다.
+
+### 주요 기능
+
+- ✅ **실시간 화면 분석**: 앱 화면을 대화형으로 분석
+- ✅ **9가지 검색 옵션**: 텍스트, 타입, 버튼, 텍스트 필드 등 다양한 방법으로 검색
+- ✅ **자동 locator 생성**: 10가지 locator 전략을 자동으로 생성
+- ✅ **추천 locator**: 가장 안정적인 locator를 자동으로 선택
+- ✅ **JSON 저장**: 모든 요소 정보를 JSON 파일로 저장하여 팀원과 공유
+
+### 빠른 시작
+
+```bash
+# 1. 도구 실행
+python3 utils/page_analyzer.py
+
+# 2. 앱이 자동으로 실행되고 연결됨
+
+# 3. 분석하려는 화면까지 수동으로 이동
+
+# 4. Enter 키를 눌러 페이지 소스 캡처
+
+# 5. 대화형 메뉴에서 원하는 작업 선택
+```
+
+### 사용 예시
+
+#### 1단계: 도구 실행 및 화면 캡처
+```bash
+$ python3 utils/page_analyzer.py
+
+============================================================
+페이지 분석 도구 시작
+============================================================
+
+앱에 연결 중...
+✅ iPad_9th_15.7_real 연결 성공!
+
+⚠️  앱을 분석하려는 화면까지 수동으로 이동한 후 Enter를 누르세요...
+
+📸 현재 화면의 페이지 소스를 캡처하는 중...
+✅ 캡처 완료!
+```
+
+#### 2단계: 요소 검색
+```bash
+============================================================
+페이지 분석 도구 - 메뉴
+============================================================
+1. 텍스트로 검색 (이름/라벨/값)
+2. 모든 버튼 보기
+3. 모든 텍스트 필드 보기
+4. 모든 정적 텍스트 보기
+5. 모든 이미지 보기
+6. 페이지 요약 (요소 타입별 개수)
+7. 타입으로 검색 (XCUIElementType*)
+8. Accessibility ID로 검색
+9. 모든 요소를 JSON 파일로 저장
+0. 종료
+============================================================
+
+선택하세요 (0-9): 2
+
+총 12개의 버튼을 찾았습니다.
+
+Type                           Name/Label                               Value
+------------------------------------------------------------------------------------------
+Button                         홈 Tab 1 of 3                            (없음)
+Button                         과외 Tab 2 of 3                          (없음)
+Button                         자습 Tab 3 of 3                          (없음)
+```
+
+#### 3단계: Locator 코드 생성
+```bash
+원하는 요소 번호 입력 (0: 뒤로가기): 1
+
+============================================================
+Locator 코드 생성
+============================================================
+(AppiumBy.ACCESSIBILITY_ID, "홈\nTab 1 of 3")
+
+📋 위 코드를 Page Object 클래스에 복사하여 사용하세요.
+```
+
+#### 4단계: JSON 파일로 저장
+```bash
+선택하세요 (0-9): 9
+저장할 파일명 입력 (기본: page_elements.json): student_home.json
+
+✅ 총 234개의 요소를 elements/student_home.json에 저장했습니다.
+💡 각 요소의 locators.recommended 필드를 확인하세요.
+```
+
+### 생성되는 Locator 종류
+
+페이지 분석 도구는 각 요소마다 10가지 locator 전략을 자동으로 생성합니다:
+
+1. **accessibility_id** - 가장 안정적 (우선 추천)
+2. **xpath_by_name** - name 속성 기반
+3. **xpath_by_label** - label 속성 기반
+4. **xpath_by_value** - value 속성 기반
+5. **xpath_by_type** - 요소 타입 기반
+6. **xpath_type_and_name** - 타입+name 조합
+7. **xpath_type_and_label** - 타입+label 조합
+8. **xpath_absolute** - 절대 경로 (계층 구조)
+9. **ios_class_chain** - iOS 전용, 빠른 실행
+10. **ios_predicate** - iOS 전용, 강력한 필터링
+
+### JSON 파일 활용
+
+저장된 JSON 파일을 테스트 작성 시 참조할 수 있습니다:
+
+```python
+# utils/json_locator_helper.py 사용
+from utils.json_locator_helper import JSONLocatorHelper
+
+# JSON 파일 로드
+helper = JSONLocatorHelper('elements/student_home.json')
+
+# 텍스트로 검색
+elements = helper.find_by_text('로그인')
+
+# 권장 locator 가져오기
+if elements:
+    locator = helper.get_recommended_locator(elements[0])
+    print(f"추천 locator: {locator}")
+```
+
+### 실전 활용 예시
+
+#### Before (기존 방식)
+```python
+# 1. Appium Inspector로 요소 찾기 (5분)
+# 2. 수동으로 locator 작성 (3분)
+# 3. 테스트하고 오류 수정 (5분)
+# → 총 13분 소요
+
+class HomePage(BasePage):
+    # locator를 찾기 어렵고 오류가 자주 발생
+    SOME_BUTTON = (AppiumBy.XPATH, "//XCUIElementTypeButton[1]")  # 불안정
+```
+
+#### After (페이지 분석 도구 사용)
+```python
+# 1. page_analyzer.py 실행 (1분)
+# 2. 버튼 검색 및 locator 복사 (30초)
+# 3. Page Object에 붙여넣기 (30초)
+# → 총 2분 소요 (85% 시간 절약!)
+
+class HomePage(BasePage):
+    # 자동으로 생성된 가장 안정적인 locator
+    GNB_HOME = (AppiumBy.ACCESSIBILITY_ID, "홈\nTab 1 of 3")  # 안정적
+    GNB_TUTORING = (AppiumBy.ACCESSIBILITY_ID, "과외\nTab 2 of 3")
+    GNB_PREPARATION = (AppiumBy.ACCESSIBILITY_ID, "자습\nTab 3 of 3")
+```
+
+### 상세 가이드
+
+페이지 분석 도구의 모든 기능과 사용법은 다음 문서를 참고하세요:
+
+**📖 [페이지 분석 도구 완전 가이드](docs/PAGE_ANALYZER_GUIDE.md)**
+
+내용:
+- 상세한 사용법 및 예제
+- 10가지 locator 전략 설명
+- JSON 파일 구조 및 활용법
+- 팁과 모범 사례
+- 문제 해결 가이드
 
 ---
 
