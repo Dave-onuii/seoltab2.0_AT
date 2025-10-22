@@ -7,6 +7,18 @@ class BasePage:
         self.driver = driver
         # 각 메소드에서 WebDriverWait를 직접 생성하므로, __init__에서는 삭제해도 됨
 
+    def is_android(self):
+        """현재 플랫폼이 Android인지 확인"""
+        return self.driver.capabilities['platformName'].lower() == 'android'
+
+    def is_ios(self):
+        """현재 플랫폼이 iOS인지 확인"""
+        return self.driver.capabilities['platformName'].lower() == 'ios'
+
+    def get_platform(self):
+        """현재 플랫폼 이름 반환 (소문자)"""
+        return self.driver.capabilities['platformName'].lower()
+
     # find_element 메소드를 timeout 인자를 받도록 함
     def find_element(self, locator, timeout=20):
         return WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located(locator))
@@ -19,10 +31,13 @@ class BasePage:
     def send_keys(self, locator, text, timeout=20, clear_first=False):
         print(f"BasePage: '{locator}' 요소에 '{text}'를 입력합니다.")
         element = self.find_element(locator, timeout)
+        element.click()  # Android에서 키보드를 올리기 위해 클릭 필요
         if clear_first:
             element.clear()
             print(f"BasePage: '{locator}' 요소의 기존 값을 지웠습니다.")
+            element.click()  # clear 후 포커스를 다시 맞추기 위해 클릭
         element.send_keys(text)
+        print(f"BasePage: '{locator}' 요소에 값 입력 완료.")
 
     def clear(self, locator, timeout=20):
         print(f"BasePage: '{locator}' 요소의 값을 지웁니다.")

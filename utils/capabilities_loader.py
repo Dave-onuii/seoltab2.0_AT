@@ -13,7 +13,7 @@ def get_capabilities(device_name: str) -> dict:
     config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'devices.json')
     
     try:
-        with open(config_path, 'r') as f:
+        with open(config_path, 'r', encoding='utf-8') as f:
             all_devices = json.load(f)
         
         if device_name in all_devices:

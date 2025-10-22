@@ -4,17 +4,39 @@ from .base_page import BasePage
 from selenium.common.exceptions import TimeoutException # 예외 처리를 위해 import
 
 class LoginPage(BasePage):
-    # --- Locators (요소들) ---
-    EMAIL_INPUT = (AppiumBy.XPATH, "//XCUIElementTypeTextField[1]") # 이메일 입력필드 (첫 번째 TextField)
-    PASSWORD_INPUT = (AppiumBy.ACCESSIBILITY_ID, "비밀번호를 입력해주세요") # 비밀번호 입력필드
-    LOGIN_BUTTON = (AppiumBy.ACCESSIBILITY_ID, "로그인") # 로그인 버튼
-    INTRO_POPUP_DIALOG = (AppiumBy.ACCESSIBILITY_ID, "introPopupDialog") # 로그인 후 홈에 진입시 노출되는 인트로 팝업 다이얼로그
-
+        # iOS Locators
+    IOS_EMAIL_INPUT = (AppiumBy.XPATH, "//XCUIElementTypeTextField[1]")
+    IOS_PASSWORD_INPUT = (AppiumBy.ACCESSIBILITY_ID, "비밀번호를 입력해주세요")
+    IOS_INTRO_POPUP_DIALOG = (AppiumBy.ACCESSIBILITY_ID, "introPopupDialog")
+    
+    # Android Locators
+    ANDROID_EMAIL_INPUT = (AppiumBy.XPATH, "//android.widget.EditText[1]")
+    ANDROID_PASSWORD_INPUT = (AppiumBy.XPATH, "//android.widget.EditText[2]")
+    ANDROID_INTRO_POPUP_DIALOG = (AppiumBy.XPATH, "//android.view.View[@content-desc='ntroPopupDialog'/android.view.View/android.view.View/android.view.View/android.widget.ImageView[2]")
+    
+    # 공통 Locators
+    LOGIN_BUTTON = (AppiumBy.ACCESSIBILITY_ID, "로그인")
+    
+    
+    def __init__(self, driver):
+        super().__init__(driver)
+        # 플랫폼 감지 후 사용할 locator 설정
+        platform = self.driver.capabilities['platformName'].lower()
+        
+        if platform == 'android':
+            self.EMAIL_INPUT = self.ANDROID_EMAIL_INPUT
+            self.PASSWORD_INPUT = self.ANDROID_PASSWORD_INPUT
+            self.INTRO_POPUP_DIALOG = self.ANDROID_INTRO_POPUP_DIALOG
+        else:  # iOS
+            self.EMAIL_INPUT = self.IOS_EMAIL_INPUT
+            self.PASSWORD_INPUT = self.IOS_PASSWORD_INPUT
+            self.INTRO_POPUP_DIALOG = self.IOS_INTRO_POPUP_DIALOG
+            
     # --- Actions (기능들) --- 
     def login(self, email, password):
         """로그인 페이지가 노출되면 로그인을 진행하고 그렇지 않으면 인트로 팝업 노출여부로 로그인 여부를 체크 함"""
         try:
-            self.find_element(self.EMAIL_INPUT, timeout=20)
+            self.find_element(self.EMAIL_INPUT, timeout=30)
             print("이메일 입력창이 노출되었습니다. 로그인을 시도합니다...")
             self.send_keys(self.EMAIL_INPUT, email, clear_first=True)
             self.send_keys(self.PASSWORD_INPUT, password, clear_first=True)

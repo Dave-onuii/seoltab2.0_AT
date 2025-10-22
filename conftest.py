@@ -29,7 +29,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--device",
         action="store",
-        default="iPad_9th_15.7_real",
+        default="stg_Galaxy_Tab7_FE_OS14_real",
         help="디바이스 이름 (devices.json에 정의된 키)"
     )
 
@@ -64,7 +64,7 @@ def driver(device_name):
     options = AppiumOptions().load_capabilities(desired_caps)
 
     # Appium 드라이버 생성
-    driver = webdriver.Remote('http://localhost:4723/wd/hub', options=options)
+    driver = webdriver.Remote('http://localhost:4723', options=options)
     print(f"[SETUP] 드라이버 생성 완료 (디바이스: {device_name}).")
 
     # Allure 환경 정보 추가

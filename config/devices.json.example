@@ -1,0 +1,36 @@
+{
+  "iPad_9th_15.7_real": {
+    "platformName": "iOS",
+    "appium:platformVersion": "15.7",
+    "appium:deviceName": "Your iPad Name",
+    "appium:automationName": "XCUITest",
+    "appium:udid": "YOUR-IOS-DEVICE-UDID-HERE",
+    "appium:bundleId": "com.onuii.IOS.SolTab.stg",
+    "autoAcceptAlerts": true,
+    "appium:usePrebuiltWDA": true,
+    "appium:derivedDataPath": "/Users/YOUR_USERNAME/wda_build",
+    "appium:wdaLaunchTimeout": 30000
+  },
+
+  "main_Galaxy_Tab7_FE_OS14_real": {
+    "platformName": "Android",
+    "appium:platformVersion": "14",
+    "appium:deviceName": "Your Android Device Name",
+    "appium:automationName": "UiAutomator2",
+    "appium:udid": "YOUR-ANDROID-DEVICE-UDID-HERE",
+    "appium:appPackage": "com.seoltab.seoltab",
+    "appium:appActivity": "com.seoltab.seoltab.MainActivity",
+    "appium:autoGrantPermissions": true
+  },
+
+  "stg_Galaxy_Tab7_FE_OS14_real": {
+    "platformName": "Android",
+    "appium:platformVersion": "14",
+    "appium:deviceName": "Your Android Device Name",
+    "appium:automationName": "UiAutomator2",
+    "appium:udid": "YOUR-ANDROID-DEVICE-UDID-HERE",
+    "appium:appPackage": "com.seoltab.seoltab.stg",
+    "appium:appActivity": "com.seoltab.seoltab.MainActivity",
+    "appium:autoGrantPermissions": true
+  }
+}

@@ -14,8 +14,9 @@ __pycache__/
 # macOS 시스템 파일
 .DS_Store
 
-# 계정 정보 (보안)
+# 계정 정보 및 디바이스 정보 (보안)
 config/accounts.json
+config/devices.json
 
 # 디버깅 파일
 page_source_debug.xml
