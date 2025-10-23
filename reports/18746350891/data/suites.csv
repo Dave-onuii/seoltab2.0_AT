@@ -1,0 +1,18 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"
+로그인만 테스트하는 간단한 시나리오
+
+Args:
+    login_page: 로그인 페이지 객체 (fixture)
+    home_page: 홈 페이지 객체 (fixture)
+    my_page: 마이 페이지 객체 (fixture)
+    test_account: 테스트 계정 정보 (fixture)
+","16823","test_login_only","tests","2025-10-23","passed","2025-10-23","","test_login_logout","",""
+"test_account_1 계정으로 로그인하여 정상 동작을 확인합니다.","35089","test_account_1 계정 로그인 테스트","tests","2025-10-23","passed","2025-10-23","","test_login_logout","",""
+"
+사용자가 성공적으로 로그인하고 로그아웃하는 전체 시나리오를 테스트합니다.
+
+Args:
+    pages: 페이지 객체들 (fixture)
+    test_account: 테스트 계정 정보 (fixture)
+","37781","test_login_logout","tests","2025-10-23","passed","2025-10-23","","test_login_logout","",""
