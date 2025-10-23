@@ -1,7 +1,17 @@
 "DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
-"파라미터를 사용하는 더미 테스트","0","test_dummy_parametrize[1]","tests","2025-10-23","passed","2025-10-23","","test_dummy","",""
-"실패하는 더미 테스트 (주석 처리)","100","test_dummy_fail","tests","2025-10-23","passed","2025-10-23","","test_dummy","",""
-"파라미터를 사용하는 더미 테스트","0","test_dummy_parametrize[3]","tests","2025-10-23","passed","2025-10-23","","test_dummy","",""
-"성공하는 더미 테스트","200","test_dummy_success","tests","2025-10-23","passed","2025-10-23","","test_dummy","",""
-"스킵되는 더미 테스트","0","test_dummy_skip","tests","2025-10-23","skipped","2025-10-23","","test_dummy","",""
-"파라미터를 사용하는 더미 테스트","0","test_dummy_parametrize[2]","tests","2025-10-23","passed","2025-10-23","","test_dummy","",""
+"
+로그인만 테스트하는 간단한 시나리오
+
+Args:
+    login_page: 로그인 페이지 객체 (fixture)
+    home_page: 홈 페이지 객체 (fixture)
+    my_page: 마이 페이지 객체 (fixture)
+    test_account: 테스트 계정 정보 (fixture)
+","16911","test_login_only","tests","2025-10-23","passed","2025-10-23","","test_login_logout","",""
+"
+사용자가 성공적으로 로그인하고 로그아웃하는 전체 시나리오를 테스트합니다.
+
+Args:
+    pages: 페이지 객체들 (fixture)
+    test_account: 테스트 계정 정보 (fixture)
+","37245","test_login_logout","tests","2025-10-23","passed","2025-10-23","","test_login_logout","",""
