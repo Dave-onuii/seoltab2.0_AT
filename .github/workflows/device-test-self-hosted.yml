@@ -137,14 +137,14 @@ jobs:
           git checkout gh-pages
 
           # 리포트 디렉토리 생성 및 복사
-          REPORT_DIR="reports/${{ github.run_number }}"
+          REPORT_DIR="reports/${{ github.run_id }}"
           rm -rf $REPORT_DIR  # 기존 디렉토리 삭제 (있을 경우)
           mkdir -p $REPORT_DIR
           cp -r allure-report/* $REPORT_DIR/
 
           # 커밋 및 푸시
           git add $REPORT_DIR
-          git commit -m "Add device test report #${{ github.run_number }}" || echo "No changes to commit"
+          git commit -m "Add device test report #${{ github.run_id }}" || echo "No changes to commit"
           git push origin gh-pages
 
           # 원래 브랜치로 복귀
@@ -156,6 +156,6 @@ jobs:
         run: |
           echo "### 테스트 실행 완료 ✅" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**리포트 URL**: https://dave-onuii.github.io/seoltab2.0_AT/reports/${{ github.run_number }}/" >> $GITHUB_STEP_SUMMARY
+          echo "**리포트 URL**: https://dave-onuii.github.io/seoltab2.0_AT/reports/${{ github.run_id }}/" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**실행 시간**: $(date)" >> $GITHUB_STEP_SUMMARY

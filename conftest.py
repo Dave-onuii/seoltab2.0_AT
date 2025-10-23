@@ -304,10 +304,10 @@ def pytest_sessionfinish(session, exitstatus):
 
         if is_ci:
             # CI/CD 환경: 공개 리포트 URL 생성 (GitHub Pages)
-            run_number = os.getenv("GITHUB_RUN_NUMBER", "latest")
+            run_id = os.getenv("GITHUB_RUN_ID", "latest")
             repo_name = os.getenv("GITHUB_REPOSITORY", "Dave-onuii/seoltab2.0_AT").split("/")[1]
             repo_owner = os.getenv("GITHUB_REPOSITORY", "Dave-onuii/seoltab2.0_AT").split("/")[0]
-            report_url = f"https://{repo_owner}.github.io/{repo_name}/reports/{run_number}/index.html"
+            report_url = f"https://{repo_owner}.github.io/{repo_name}/reports/{run_id}/index.html"
             environment = "GitHub Actions"
         else:
             # 로컬 환경: 리포트 URL은 None (메시지에서 제외됨)
