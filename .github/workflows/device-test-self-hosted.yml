@@ -21,6 +21,9 @@ on:
   # push:
   #   branches: [ main, develop ]
 
+permissions:
+  contents: write  # gh-pages 브랜치에 푸시하기 위한 권한
+
 jobs:
   test:
     runs-on: self-hosted  # Self-Hosted Runner 사용
@@ -125,6 +128,9 @@ jobs:
           # 현재 브랜치와 커밋 저장
           CURRENT_BRANCH=$(git branch --show-current)
           CURRENT_COMMIT=$(git rev-parse HEAD)
+
+          # GitHub Token으로 인증된 URL 설정
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
           # gh-pages 브랜치로 전환
           git fetch origin gh-pages:gh-pages || git checkout --orphan gh-pages
