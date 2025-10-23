@@ -1,0 +1,119 @@
+name: Device Test with Self-Hosted Runner
+
+on:
+  # 수동 실행
+  workflow_dispatch:
+    inputs:
+      test_path:
+        description: '테스트 경로 (예: tests/test_login.py)'
+        required: false
+        default: 'tests/'
+      markers:
+        description: 'pytest 마커 (예: smoke, regression)'
+        required: false
+        default: ''
+      device:
+        description: '디바이스 이름 (예: Galaxy_S21, iPhone_13)'
+        required: false
+        default: ''
+
+  # Push 시 자동 실행 (선택적, 주석 처리됨)
+  # push:
+  #   branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: self-hosted  # Self-Hosted Runner 사용
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Python version
+        run: python3 --version
+
+      - name: Check pip version
+        run: pip3 --version
+
+      - name: Install dependencies
+        run: |
+          pip3 install -r requirements.txt || true
+
+      - name: Check Appium connection
+        run: |
+          echo "Checking Appium server..."
+          curl -s http://127.0.0.1:4723/status || echo "⚠️ Appium server is not running. Please start it manually: appium"
+
+      - name: Check connected devices
+        run: |
+          echo "=== Android Devices ==="
+          adb devices || echo "No Android devices found"
+          echo ""
+          echo "=== iOS Devices ==="
+          xcrun xctrace list devices 2>/dev/null | grep -E "iPhone|iPad" || echo "No iOS devices found"
+
+      - name: Run tests
+        run: |
+          # 테스트 경로 설정
+          TEST_PATH="${{ github.event.inputs.test_path || 'tests/' }}"
+
+          # pytest 명령어 구성
+          CMD="pytest $TEST_PATH --auto-report --slack"
+
+          # 마커가 있으면 추가
+          if [ -n "${{ github.event.inputs.markers }}" ]; then
+            CMD="$CMD -m ${{ github.event.inputs.markers }}"
+          fi
+
+          # 디바이스가 지정되었으면 추가
+          if [ -n "${{ github.event.inputs.device }}" ]; then
+            CMD="$CMD --device=${{ github.event.inputs.device }}"
+          fi
+
+          echo "Running: $CMD"
+          eval $CMD
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          CI: true
+          GITHUB_ACTIONS: true
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results/
+          retention-days: 7
+
+      - name: Deploy to GitHub Pages
+        if: always()
+        run: |
+          # Allure 리포트 생성
+          allure generate allure-results -o allure-report --clean
+
+          # gh-pages 브랜치에 배포
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 리포트 디렉토리 생성
+          REPORT_DIR="reports/${{ github.run_number }}"
+          mkdir -p $REPORT_DIR
+          cp -r allure-report/* $REPORT_DIR/
+
+          # gh-pages 브랜치로 푸시
+          git fetch origin gh-pages || git checkout --orphan gh-pages
+          git checkout gh-pages
+          cp -r $REPORT_DIR reports/
+          git add reports/
+          git commit -m "Add device test report #${{ github.run_number }}"
+          git push origin gh-pages
+        continue-on-error: true
+
+      - name: Post test summary
+        if: always()
+        run: |
+          echo "### 테스트 실행 완료 ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**리포트 URL**: https://dave-onuii.github.io/seoltab2.0_AT/reports/${{ github.run_number }}/" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**실행 시간**: $(date)" >> $GITHUB_STEP_SUMMARY

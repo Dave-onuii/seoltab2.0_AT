@@ -15,6 +15,7 @@
 - [환경 설정](#-환경-설정)
 - [테스트 실행](#-테스트-실행)
 - [리포트 확인](#-리포트-확인)
+- [CI/CD 및 Self-Hosted Runner](#-cicd-및-self-hosted-runner)
 - [페이지 분석 도구](#-페이지-분석-도구)
 - [테스트 작성 가이드](#-테스트-작성-가이드)
 - [팀 협업 가이드](#-팀-협업-가이드)
@@ -277,6 +278,133 @@ pytest
 # 리포트 확인
 open reports/report.html
 ```
+
+---
+
+## 🚀 CI/CD 및 Self-Hosted Runner
+
+### GitHub Actions 통합
+
+이 프로젝트는 **GitHub Actions**를 통해 자동화된 테스트 및 리포트 생성을 지원합니다.
+
+### 두 가지 워크플로우
+
+#### 1. 더미 테스트 (GitHub-Hosted Runner)
+- **파일**: [.github/workflows/test-and-report.yml](.github/workflows/test-and-report.yml)
+- **실행 환경**: GitHub 클라우드 서버 (ubuntu-latest)
+- **용도**: 기본 코드 검증, PR 체크
+- **테스트**: `tests/test_dummy.py` (디바이스 연결 불필요)
+- **리포트**: GitHub Pages에 자동 배포
+- **Slack 알림**: 자동 전송
+
+**실행 방법**:
+```bash
+# GitHub 저장소 > Actions > "Test and Allure Report" > Run workflow
+```
+
+**리포트 URL**:
+```
+https://dave-onuii.github.io/seoltab2.0_AT/reports/{RUN_NUMBER}/
+```
+
+#### 2. 실제 디바이스 테스트 (Self-Hosted Runner)
+- **파일**: [.github/workflows/device-test-self-hosted.yml](.github/workflows/device-test-self-hosted.yml)
+- **실행 환경**: 본인의 Mac (Self-Hosted Runner)
+- **용도**: 실제 디바이스 자동화 테스트
+- **테스트**: 모든 테스트 (PC에 연결된 디바이스 사용)
+- **리포트**: GitHub Pages에 자동 배포
+- **Slack 알림**: 자동 전송
+
+**실행 방법**:
+```bash
+# GitHub 저장소 > Actions > "Device Test with Self-Hosted Runner" > Run workflow
+```
+
+**워크플로우 옵션**:
+- **test_path**: 실행할 테스트 경로 (기본: `tests/`)
+- **markers**: pytest 마커 (예: `smoke`, `regression`)
+- **device**: 디바이스 이름 (예: `iPad_9th_15.7_real`)
+
+---
+
+### Self-Hosted Runner 설정
+
+PC에 연결된 실제 디바이스를 GitHub Actions로 테스트하려면 **Self-Hosted Runner**를 설정해야 합니다.
+
+#### 설정이 필요한 이유
+- ✅ PC에 연결된 **실제 디바이스** 테스트 가능
+- ✅ GitHub Actions의 **모든 기능** 활용 (자동 실행, Slack 알림, 리포트 배포)
+- ✅ **로컬 Appium Server** 사용 가능
+
+#### 빠른 설정 가이드
+
+**1단계: Runner 다운로드 및 설치**
+```bash
+# Runner 디렉토리 생성
+mkdir -p ~/actions-runner && cd ~/actions-runner
+
+# M1/M2/M3 Mac의 경우
+curl -o actions-runner-osx-arm64-2.313.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.313.0/actions-runner-osx-arm64-2.313.0.tar.gz
+tar xzf ./actions-runner-osx-arm64-2.313.0.tar.gz
+```
+
+**2단계: GitHub에서 토큰 발급**
+```
+GitHub 저장소 > Settings > Actions > Runners > New self-hosted runner
+→ 제공되는 토큰 복사
+```
+
+**3단계: Runner 등록**
+```bash
+./config.sh --url https://github.com/dave-onuii/seoltab2.0_AT --token YOUR_TOKEN_HERE
+```
+
+**4단계: Runner 실행**
+```bash
+# 방법 1: 수동 실행 (테스트용)
+./run.sh
+
+# 방법 2: 백그라운드 서비스 (권장)
+sudo ./svc.sh install
+sudo ./svc.sh start
+```
+
+**5단계: Appium Server 실행**
+```bash
+appium
+```
+
+**6단계: GitHub Actions에서 워크플로우 실행**
+```
+Actions > Device Test with Self-Hosted Runner > Run workflow
+```
+
+#### 상세 설정 가이드
+
+모든 설정 단계, 문제 해결, 보안 고려사항은 다음 문서를 참고하세요:
+
+**📖 [Self-Hosted Runner 완전 가이드](SELF_HOSTED_RUNNER_SETUP.md)**
+
+내용:
+- Self-Hosted Runner vs GitHub-Hosted Runner 비교
+- 단계별 설정 방법 (macOS)
+- 서비스로 실행하는 방법
+- 워크플로우 수정 방법
+- 문제 해결 가이드
+- 보안 고려사항
+
+---
+
+### 로컬 테스트 + Slack 알림
+
+Self-Hosted Runner를 설정하지 않고도 **로컬에서 테스트하고 Slack으로 팀에 공유**할 수 있습니다:
+
+```bash
+# 실제 디바이스 테스트 + Slack 알림
+pytest --auto-report --slack
+```
+
+**Slack 설정 가이드**: [SLACK_SETUP_GUIDE.md](SLACK_SETUP_GUIDE.md)
 
 ---
 
