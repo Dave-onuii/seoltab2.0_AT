@@ -39,6 +39,33 @@ jobs:
         run: |
           pip3 install -r requirements.txt || true
 
+      - name: Setup config files
+        run: |
+          # Self-Hosted Runner는 로컬 머신에서 실행되므로
+          # 홈 디렉토리의 실제 설정 파일을 사용합니다
+          echo "Setting up config files..."
+
+          # 실제 config 파일이 있는 위치 확인
+          LOCAL_CONFIG_DIR="$HOME/seoltab_AT/config"
+
+          if [ -f "$LOCAL_CONFIG_DIR/devices.json" ]; then
+            echo "✅ Copying devices.json from $LOCAL_CONFIG_DIR"
+            cp "$LOCAL_CONFIG_DIR/devices.json" config/
+          else
+            echo "⚠️ devices.json not found in $LOCAL_CONFIG_DIR"
+            echo "Using devices.json.example as fallback"
+            cp config/devices.json.example config/devices.json
+          fi
+
+          if [ -f "$LOCAL_CONFIG_DIR/accounts.json" ]; then
+            echo "✅ Copying accounts.json from $LOCAL_CONFIG_DIR"
+            cp "$LOCAL_CONFIG_DIR/accounts.json" config/
+          else
+            echo "⚠️ accounts.json not found in $LOCAL_CONFIG_DIR"
+            echo "Using accounts.json.example as fallback"
+            cp config/accounts.json.example config/accounts.json
+          fi
+
       - name: Check Appium connection
         run: |
           echo "Checking Appium server..."
