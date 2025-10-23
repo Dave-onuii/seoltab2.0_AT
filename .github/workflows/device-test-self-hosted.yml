@@ -122,18 +122,27 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # 리포트 디렉토리 생성
+          # 현재 브랜치와 커밋 저장
+          CURRENT_BRANCH=$(git branch --show-current)
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+
+          # gh-pages 브랜치로 전환
+          git fetch origin gh-pages:gh-pages || git checkout --orphan gh-pages
+          git checkout gh-pages
+
+          # 리포트 디렉토리 생성 및 복사
           REPORT_DIR="reports/${{ github.run_number }}"
+          rm -rf $REPORT_DIR  # 기존 디렉토리 삭제 (있을 경우)
           mkdir -p $REPORT_DIR
           cp -r allure-report/* $REPORT_DIR/
 
-          # gh-pages 브랜치로 푸시
-          git fetch origin gh-pages || git checkout --orphan gh-pages
-          git checkout gh-pages
-          cp -r $REPORT_DIR reports/
-          git add reports/
-          git commit -m "Add device test report #${{ github.run_number }}"
+          # 커밋 및 푸시
+          git add $REPORT_DIR
+          git commit -m "Add device test report #${{ github.run_number }}" || echo "No changes to commit"
           git push origin gh-pages
+
+          # 원래 브랜치로 복귀
+          git checkout $CURRENT_COMMIT
         continue-on-error: true
 
       - name: Post test summary
