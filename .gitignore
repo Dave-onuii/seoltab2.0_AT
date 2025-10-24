@@ -29,3 +29,11 @@ screenshots/
 .allure/
 allure-results/
 allure-report/
+
+# GitHub Actions Self-Hosted Runner
+actions-runner/
+
+# 임시 스크립트
+compare_timing.sh
+final_comparison.sh
+test_no_allure.sh
