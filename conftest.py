@@ -25,12 +25,25 @@ def pytest_addoption(parser):
         pytest --device iPad_9th_15.7_real
         pytest --device galaxy_s22_real
         pytest  (기본값: iPad_9th_15.7_real)
+        pytest --auto-report  (테스트 후 자동으로 Allure 리포트 생성)
     """
     parser.addoption(
         "--device",
         action="store",
-        default="stg_Galaxy_Tab7_FE_OS14_real",
+        default="stg_iPad_9th_15.7_real",
         help="디바이스 이름 (devices.json에 정의된 키)"
+    )
+    parser.addoption(
+        "--auto-report",
+        action="store_true",
+        default=False,
+        help="테스트 종료 후 자동으로 Allure 리포트 생성"
+    )
+    parser.addoption(
+        "--slack",
+        action="store_true",
+        default=False,
+        help="Slack 채널에 테스트 결과 알림 전송"
     )
 
 
@@ -63,9 +76,16 @@ def driver(device_name):
     # AppiumOptions 객체를 생성하고, 가져온 정보로 로드합니다.
     options = AppiumOptions().load_capabilities(desired_caps)
 
-    # Appium 드라이버 생성
-    driver = webdriver.Remote('http://localhost:4723', options=options)
-    print(f"[SETUP] 드라이버 생성 완료 (디바이스: {device_name}).")
+    # Appium 드라이버 생성 (Fallback 방식)
+    try:
+        # 먼저 /wd/hub 없이 시도 (Appium 2.x 기본)
+        driver = webdriver.Remote('http://localhost:4723', options=options)
+        print(f"[SETUP] 드라이버 생성 완료 (URL: http://localhost:4723, 디바이스: {device_name}).")
+    except Exception as e:
+        # 실패 시 /wd/hub 경로로 재시도
+        print(f"[SETUP] 첫 번째 연결 실패, /wd/hub 경로로 재시도...")
+        driver = webdriver.Remote('http://localhost:4723/wd/hub', options=options)
+        print(f"[SETUP] 드라이버 생성 완료 (URL: http://localhost:4723/wd/hub, 디바이스: {device_name}).")
 
     # Allure 환경 정보 추가
     allure.dynamic.parameter("디바이스", device_name)
@@ -172,7 +192,137 @@ def pytest_configure(config):
 
 def pytest_sessionfinish(session, exitstatus):
     """pytest 종료 시 실행되는 hook"""
+    import subprocess
+    import os
+    import time
+
     print("\n" + "="*80)
     print("설탭 2.0 테스트 자동화 종료")
     print(f"종료 상태 코드: {exitstatus}")
     print("="*80)
+
+    # 옵션 확인
+    auto_report = session.config.getoption("--auto-report", default=False)
+    send_slack = session.config.getoption("--slack", default=False)
+
+    # 테스트 결과 수집 (Slack 알림용)
+    test_stats = {
+        "passed": 0,
+        "failed": 0,
+        "skipped": 0,
+        "total": 0
+    }
+
+    if hasattr(session, 'testscollected'):
+        test_stats["total"] = session.testscollected
+
+    if hasattr(session, 'testsfailed'):
+        test_stats["failed"] = session.testsfailed
+
+    if hasattr(session, 'testsskipped'):
+        test_stats["skipped"] = session.testsskipped
+
+    test_stats["passed"] = test_stats["total"] - test_stats["failed"] - test_stats["skipped"]
+
+    if not auto_report:
+        print("\n💡 Allure 리포트를 자동 생성하려면: pytest --auto-report")
+        print("💡 수동 생성: ./generate_report.sh 또는 allure serve allure-results")
+
+        # Slack 알림만 보내기 (리포트 없음)
+        if send_slack:
+            print("\n⚠️  --slack 옵션은 --auto-report와 함께 사용해야 합니다.")
+            print("💡 사용법: pytest --auto-report --slack")
+
+        return
+
+    # 자동 리포트 생성
+    print("\n" + "="*80)
+    print("📊 Allure 리포트 자동 생성 시작...")
+    print("="*80)
+
+    start_time = time.time()
+    report_generated = False
+
+    try:
+        # allure-results 디렉토리 확인
+        if not os.path.exists("allure-results"):
+            print("⚠️  allure-results 디렉토리가 없습니다. 리포트 생성을 건너뜁니다.")
+            return
+
+        # allure 명령어 존재 여부 확인
+        result = subprocess.run(
+            ["which", "allure"],
+            capture_output=True,
+            text=True
+        )
+
+        if result.returncode != 0:
+            print("⚠️  allure 명령어를 찾을 수 없습니다.")
+            print("💡 'brew install allure'로 설치하세요.")
+            return
+
+        # Allure 리포트 생성
+        print("🔄 Allure 리포트 생성 중...")
+        result = subprocess.run(
+            ["allure", "generate", "allure-results", "--clean", "-o", "allure-report"],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+
+        elapsed_time = time.time() - start_time
+
+        if result.returncode == 0:
+            print(f"✅ Allure 리포트 생성 완료! (소요 시간: {elapsed_time:.2f}초)")
+            print(f"📂 위치: allure-report/index.html")
+            print(f"💡 브라우저에서 보려면: allure open allure-report")
+            report_generated = True
+        else:
+            print(f"❌ Allure 리포트 생성 실패 (소요 시간: {elapsed_time:.2f}초)")
+            if result.stderr:
+                print(f"에러: {result.stderr}")
+
+    except subprocess.TimeoutExpired:
+        elapsed_time = time.time() - start_time
+        print(f"⏱️  Allure 리포트 생성 시간 초과 (60초 초과, {elapsed_time:.2f}초)")
+    except Exception as e:
+        elapsed_time = time.time() - start_time
+        print(f"❌ 예상치 못한 오류 발생 (소요 시간: {elapsed_time:.2f}초): {e}")
+
+    print("="*80)
+
+    # Slack 알림 전송
+    if send_slack and report_generated:
+        from utils.slack_notifier import send_slack_notification, get_git_info
+
+        print("\n" + "="*80)
+        print("📢 Slack 알림 전송 중...")
+        print("="*80)
+
+        # CI/CD 환경 감지
+        is_ci = os.getenv("CI") or os.getenv("GITHUB_ACTIONS") or os.getenv("JENKINS_HOME")
+
+        if is_ci:
+            # CI/CD 환경: 공개 리포트 URL 생성 (GitHub Pages)
+            run_id = os.getenv("GITHUB_RUN_ID", "latest")
+            repo_name = os.getenv("GITHUB_REPOSITORY", "Dave-onuii/seoltab2.0_AT").split("/")[1]
+            repo_owner = os.getenv("GITHUB_REPOSITORY", "Dave-onuii/seoltab2.0_AT").split("/")[0]
+            report_url = f"https://{repo_owner}.github.io/{repo_name}/reports/{run_id}/index.html"
+            environment = "GitHub Actions"
+        else:
+            # 로컬 환경: 리포트 URL은 None (메시지에서 제외됨)
+            report_url = None
+            environment = "로컬"
+
+        # 테스트 결과 정보
+        test_result = {
+            **test_stats,
+            "duration": elapsed_time,
+            "exit_status": exitstatus,
+            "environment": environment,
+            **get_git_info()
+        }
+
+        # Slack 알림 전송
+        send_slack_notification(report_url, test_result)
+        print("="*80)

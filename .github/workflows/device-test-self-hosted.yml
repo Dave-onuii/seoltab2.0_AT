@@ -1,0 +1,161 @@
+name: Device Test with Self-Hosted Runner
+
+on:
+  # 수동 실행
+  workflow_dispatch:
+    inputs:
+      test_path:
+        description: '테스트 경로 (예: tests/test_login.py)'
+        required: false
+        default: 'tests/'
+      markers:
+        description: 'pytest 마커 (예: smoke, regression)'
+        required: false
+        default: ''
+      device:
+        description: '디바이스 이름 (예: Galaxy_S21, iPhone_13)'
+        required: false
+        default: ''
+
+  # Push 시 자동 실행 (선택적, 주석 처리됨)
+  # push:
+  #   branches: [ main, develop ]
+
+permissions:
+  contents: write  # gh-pages 브랜치에 푸시하기 위한 권한
+
+jobs:
+  test:
+    runs-on: self-hosted  # Self-Hosted Runner 사용
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Python version
+        run: python3 --version
+
+      - name: Check pip version
+        run: pip3 --version
+
+      - name: Install dependencies
+        run: |
+          pip3 install -r requirements.txt || true
+
+      - name: Setup config files
+        run: |
+          # Self-Hosted Runner는 로컬 머신에서 실행되므로
+          # 홈 디렉토리의 실제 설정 파일을 사용합니다
+          echo "Setting up config files..."
+
+          # 실제 config 파일이 있는 위치 확인
+          LOCAL_CONFIG_DIR="$HOME/seoltab_AT/config"
+
+          if [ -f "$LOCAL_CONFIG_DIR/devices.json" ]; then
+            echo "✅ Copying devices.json from $LOCAL_CONFIG_DIR"
+            cp "$LOCAL_CONFIG_DIR/devices.json" config/
+          else
+            echo "⚠️ devices.json not found in $LOCAL_CONFIG_DIR"
+            echo "Using devices.json.example as fallback"
+            cp config/devices.json.example config/devices.json
+          fi
+
+          if [ -f "$LOCAL_CONFIG_DIR/accounts.json" ]; then
+            echo "✅ Copying accounts.json from $LOCAL_CONFIG_DIR"
+            cp "$LOCAL_CONFIG_DIR/accounts.json" config/
+          else
+            echo "⚠️ accounts.json not found in $LOCAL_CONFIG_DIR"
+            echo "Using accounts.json.example as fallback"
+            cp config/accounts.json.example config/accounts.json
+          fi
+
+      - name: Check Appium connection
+        run: |
+          echo "Checking Appium server..."
+          curl -s http://127.0.0.1:4723/status || echo "⚠️ Appium server is not running. Please start it manually: appium"
+
+      - name: Check connected devices
+        run: |
+          echo "=== Android Devices ==="
+          adb devices || echo "No Android devices found"
+          echo ""
+          echo "=== iOS Devices ==="
+          xcrun xctrace list devices 2>/dev/null | grep -E "iPhone|iPad" || echo "No iOS devices found"
+
+      - name: Run tests
+        run: |
+          # 테스트 경로 설정
+          TEST_PATH="${{ github.event.inputs.test_path || 'tests/' }}"
+
+          # pytest 명령어 구성
+          CMD="pytest $TEST_PATH --auto-report --slack"
+
+          # 마커가 있으면 추가
+          if [ -n "${{ github.event.inputs.markers }}" ]; then
+            CMD="$CMD -m ${{ github.event.inputs.markers }}"
+          fi
+
+          # 디바이스가 지정되었으면 추가
+          if [ -n "${{ github.event.inputs.device }}" ]; then
+            CMD="$CMD --device=${{ github.event.inputs.device }}"
+          fi
+
+          echo "Running: $CMD"
+          eval $CMD
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          CI: true
+          GITHUB_ACTIONS: true
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results/
+          retention-days: 7
+
+      - name: Deploy to GitHub Pages
+        if: always()
+        run: |
+          # Allure 리포트 생성
+          allure generate allure-results -o allure-report --clean
+
+          # gh-pages 브랜치에 배포
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 현재 브랜치와 커밋 저장
+          CURRENT_BRANCH=$(git branch --show-current)
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+
+          # GitHub Token으로 인증된 URL 설정
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+
+          # gh-pages 브랜치로 전환
+          git fetch origin gh-pages:gh-pages || git checkout --orphan gh-pages
+          git checkout gh-pages
+
+          # 리포트 디렉토리 생성 및 복사
+          REPORT_DIR="reports/${{ github.run_id }}"
+          rm -rf $REPORT_DIR  # 기존 디렉토리 삭제 (있을 경우)
+          mkdir -p $REPORT_DIR
+          cp -r allure-report/* $REPORT_DIR/
+
+          # 커밋 및 푸시
+          git add $REPORT_DIR
+          git commit -m "Add device test report #${{ github.run_id }}" || echo "No changes to commit"
+          git push origin gh-pages
+
+          # 원래 브랜치로 복귀
+          git checkout $CURRENT_COMMIT
+        continue-on-error: true
+
+      - name: Post test summary
+        if: always()
+        run: |
+          echo "### 테스트 실행 완료 ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**리포트 URL**: https://dave-onuii.github.io/seoltab2.0_AT/reports/${{ github.run_id }}/" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**실행 시간**: $(date)" >> $GITHUB_STEP_SUMMARY

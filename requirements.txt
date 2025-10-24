@@ -1,22 +1,17 @@
-# 설탭 2.0 테스트 자동화 의존성 패키지
-# Python 3.13 기준
+# 테스트 자동화 의존성 패키지
+# Python 3.13+
 
-# Appium 및 Selenium
+# Appium & Selenium
 Appium-Python-Client==5.2.4
 selenium==4.36.0
 
-# pytest 및 플러그인
+# pytest & 플러그인
 pytest==8.4.2
 pytest-html==4.1.1
-pytest-xdist==3.8.0
-pytest-timeout==2.4.0
 pytest-metadata==3.1.1
+pytest-timeout==2.4.0
+pytest-xdist==3.8.0
 
 # Allure 리포트
 allure-pytest==2.15.0
 allure-python-commons==2.15.0
-
-# 추가 유틸리티 (필요 시 설치)
-# pytest-rerunfailures  # 실패한 테스트 재시도
-# pytest-ordering       # 테스트 실행 순서 제어
-# pillow                # 이미지 처리
